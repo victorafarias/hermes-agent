@@ -1,0 +1,32 @@
+# Docker Compose para deploy do Hermes Agent com Traefik
+# Host: hermes.ovictorfarias.com.br
+# Porta do Dashboard Web / API: 9119
+
+services:
+  hermes:
+    image: nousresearch/hermes-agent:latest
+    container_name: hermes
+    restart: unless-stopped
+    command: ["gateway", "run"]
+    environment:
+      - HERMES_UID=0
+      - HERMES_GID=0
+      - HERMES_DASHBOARD=true
+      - HERMES_DASHBOARD_HOST=0.0.0.0
+      - HERMES_DASHBOARD_PORT=9119
+    env_file:
+      - /root/.hermes/.env
+    volumes:
+      - /root/.hermes:/opt/data
+    networks:
+      - root_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hermes.rule=Host(`hermes.ovictorfarias.com.br`)"
+      - "traefik.http.routers.hermes.entrypoints=websecure"
+      - "traefik.http.routers.hermes.tls.certresolver=mytlschallenge"
+      - "traefik.http.services.hermes.loadbalancer.server.port=9119"
+
+networks:
+  root_default:
+    external: true
